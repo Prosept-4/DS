@@ -372,6 +372,3 @@ def main_function(json_parser=0, json_products=0, path=''):
     # Сбрка финального словаря предсказаний
     dict_of_neighbors = dict_join(dict_of_neigh, dict_of_tfidf_neighbors)
     return dict_of_neighbors
-
-dict_final = main_function()
-print(dict_final)
