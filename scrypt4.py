@@ -22,7 +22,7 @@ def json_reading(json_parser, json_products):
 def csv_reading(path=''):
     '''
     Функция загрузки данных. по умолчани берет файлы из директории и проводит начальный препроцессинг
-    Выдает 4 датафрейма (возможно следует таблицу мэтчей сделать опциональным аргументом, без МО(с учителем) она не нужна)
+    Выдает 2 датафрейма (возможно следует таблицу мэтчей сделать опциональным аргументом, без МО(с учителем) она не нужна)
     Если установить prep=False то загрузит сырые данные как они есть
     '''
     parser = pd.read_csv(path + 'marketing_dealerprice.csv', sep=';').drop(['id','product_url', 'date'], axis=1)
@@ -171,11 +171,11 @@ def products_prep(products):
                  .drop(['article'], axis=1)
                  .rename(columns={'name_new': 'ozon_name_new'}))
     name_1 = (products['name']
-    .apply(change_equal).apply(pd.Series)
-    .rename(columns={'name_new': 'name_new'})['name_new'])
+                .apply(change_equal).apply(pd.Series)
+                .rename(columns={'name_new': 'name_new'})['name_new'])
     wb_name = (products['wb_name']
-    .apply(change_equal).apply(pd.Series)
-    .rename(columns={'name_new': 'wb_name_new'})['wb_name_new'])
+                .apply(change_equal).apply(pd.Series)
+                .rename(columns={'name_new': 'wb_name_new'})['wb_name_new'])
     products1 = pd.concat([products, ozon_name, name_1c, wb_name, name_1], axis=1)
 
     # Соединяем названия из 4х колонок в full name (только уникальные слова в том же порядке)
@@ -200,8 +200,8 @@ def products_prep(products):
                                        'quantity']]
 
     # заполняем пропуски рекомендованной цены медианой
-    products_final['recommended_price'] = (products_final['recommended_price']
-                                           .fillna(products_final['recommended_price'].median()))
+    #products_final['recommended_price'] = (products_final['recommended_price']
+    #                                      .fillna(products_final['recommended_price'].median()))
     return products_final
 
 
@@ -283,10 +283,10 @@ def get_neighbors(products_final, parser_final):
     # Вторая: query - соответствие запроса к парсеру и правильного ответа к продукции
     base = products_final.copy().set_index('id').drop(['cost'], axis=1)
     query = (parser_final
-    .groupby('key').first()
-    .reset_index()[['key', 'price',
-                    'name_new', 'article',
-                    'quantity', 'dimension']])
+            .groupby('key').first()
+            .reset_index()[['key', 'price',
+                            'name_new', 'article',
+                            'quantity', 'dimension']])
 
     #загрузка обученного TF-IDF
     with open('korpus_tfidf.pkl', 'rb') as fid:
@@ -342,6 +342,7 @@ def main_function(json_parser=0, json_products=0, path=''):
 
     # загрузка документов
     parser, products = json_reading(json_parser, json_products)
+    #parser, products = csv_reading()
     # преобразование текста(обе таблицы, лемматизация)
     parser_final = parser_prep(parser)
     products_final = products_prep(products)
@@ -371,3 +372,6 @@ def main_function(json_parser=0, json_products=0, path=''):
     # Сбрка финального словаря предсказаний
     dict_of_neighbors = dict_join(dict_of_neigh, dict_of_tfidf_neighbors)
     return dict_of_neighbors
+
+dict_final = main_function()
+print(dict_final)
